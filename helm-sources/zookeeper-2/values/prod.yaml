@@ -1,0 +1,8 @@
+#namespace
+NAMESPACE: prod
+
+#kafka broker
+ZOOKEEPER_IMAGE_NAME: confluentinc/cp-zookeeper
+ZOOKEEPER_MEMORY: "100Mi"
+ZOOKEEPER_VOLUMENAME: fdk-prod-zookeeper-2
+ZOOKEEPER_STORAGESIZE: "9G"

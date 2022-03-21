@@ -1,0 +1,93 @@
+name: Deploy to production & demo
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy-production:
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [ zookeeper-1, kafka-1, kafka-2, kafka-3, schema-registry-1 ]
+
+    name: Deploy ${{ matrix.app }} to prod on merge to main branch
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup gcloud CLI for deploy
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: ${{ secrets.DIGDIR_FDK_PROD_AUTODEPLOY }}
+
+      - name: Apply Helm template
+        run: |
+          helm template \
+          ./helm-sources/${{ matrix.app }}/ > ./kubectlapply-${{ matrix.app }}.yaml \
+          -f ./helm-sources/${{ matrix.app }}/values/prod.yaml 
+          chmod o+w ./kubectlapply-${{ matrix.app }}.yaml
+          cat kubectlapply-${{ matrix.app }}.yaml
+
+      - name: Deploy to GCP
+        run: |
+          gcloud container clusters get-credentials digdir-fdk-prod --region europe-north1-a --project digdir-fdk-prod
+          kubectl apply -f ./kubectlapply-${{ matrix.app }}.yaml --force
+          kubectl --namespace=prod rollout restart statefulset ${{ matrix.app }}
+
+      - name: Notify slack
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          author_name: 'Application: FDK Event Streaming Service - ${{ matrix.app }} | Environment: prod'
+          fields: commit,author,workflow
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()
+
+  deploy-to-demo:
+    needs: build-and-deploy-production
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [ zookeeper-1, kafka-1, schema-registry-1 ]
+
+    name: Deploy ${{ matrix.app }} to demo if prod-deploy is successful
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup gcloud CLI for deploy
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: ${{ secrets.DIGDIR_FDK_DEV_AUTODEPLOY }}
+
+      - name: Apply Helm template
+        run: |
+          helm template \
+          ./helm-sources/${{ matrix.app }}/ > ./kubectlapply-${{ matrix.app }}.yaml \
+          -f ./helm-sources/${{ matrix.app }}/values/demo.yaml 
+          chmod o+w ./kubectlapply-${{ matrix.app }}.yaml
+          cat kubectlapply-${{ matrix.app }}.yaml
+
+      - name: Deploy to GCP
+        run: |
+          gcloud container clusters get-credentials digdir-fdk-dev --region europe-north1-a --project digdir-fdk-dev
+          kubectl apply -f ./kubectlapply-${{ matrix.app }}.yaml --force
+          kubectl --namespace=demo rollout restart statefulset ${{ matrix.app }}
+
+      - name: Notify slack
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          author_name: 'Application: FDK Event Streaming Service - ${{ matrix.app }} | Environment: demo'
+          fields: commit,author,workflow
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()
