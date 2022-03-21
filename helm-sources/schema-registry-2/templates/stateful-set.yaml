@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  creationTimestamp: null
+  labels:
+    app: schema-registry-2
+  name: schema-registry-2
+  namespace: {{ required "Missing value NAMESPACE" .Values.NAMESPACE }}
+spec:
+  replicas: 1
+  serviceName: schema-registry-2
+  selector:
+    matchLabels:
+      app: schema-registry-2
+  template:
+    metadata:
+      labels:
+        app: schema-registry-2
+    spec:
+      containers:
+        - env:
+          - name: SCHEMA_REGISTRY_HOST_NAME
+            value: "schema-registry-2"
+          - name: SCHEMA_REGISTRY_LISTENERS
+            value: "http://0.0.0.0:8081"
+          - name: SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS
+            value: { { required "Missing value SCHEMA_REGISTRY_BOOTSTRAP_SERVERS" .Values.SCHEMA_REGISTRY_BOOTSTRAP_SERVERS } }
+
+          name: schema-registry-2
+          image: {{ required "Missing value SCHEMA_REGISTRY_IMAGE_NAME" .Values.SCHEMA_REGISTRY_IMAGE_NAME }}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 2181
+          resources:
+            requests:
+              memory: {{ required "Missing value SCHEMA_REGISTRY_MEMORY" .Values.SCHEMA_REGISTRY_MEMORY | quote }}
+
+      restartPolicy: Always
+status:
+  replicas: 1

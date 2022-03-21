@@ -1,0 +1,7 @@
+#namespace
+NAMESPACE: prod
+
+#kafka broker
+SCHEMA_REGISTRY_IMAGE_NAME: confluentinc/cp-schema-registry
+SCHEMA_REGISTRY_MEMORY: "100Mi"
+SCHEMA_REGISTRY_BOOTSTRAP_SERVERS: "PLAINTEXT://kafka-1:9092,PLAINTEXT://kafka-2:9092,PLAINTEXT://kafka-3:9092"

@@ -1,0 +1,9 @@
+#namespace
+NAMESPACE: demo
+
+#kafka broker
+KAFKA_IMAGE_NAME: confluentinc/cp-kafka
+KAFKA_MEMORY: "100Mi"
+KAFKA_VOLUMENAME: fdk-dev-demo-kafka-1
+KAFKA_STORAGESIZE: "24G"
+KAFKA_OFFSET_TOPIC_REPLICATION_FACTOR: "1"

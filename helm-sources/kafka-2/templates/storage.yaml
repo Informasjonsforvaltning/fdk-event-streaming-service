@@ -1,0 +1,32 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kafka-2
+  name: kafka-2-claim0
+  namespace: {{ required "Missing value NAMESPACE" .Values.NAMESPACE }}
+spec:
+  storageClassName: ""
+  volumeName: {{ required "Missing value KAFKA_VOLUMENAME" .Values.KAFKA_VOLUMENAME }}
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ required "Missing value KAFKA_STORAGESIZE" .Values.KAFKA_STORAGESIZE | quote }}
+
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: {{ required "Missing value KAFKA_VOLUMENAME" .Values.KAFKA_VOLUMENAME }}
+  namespace: {{ required "Missing value NAMESPACE" .Values.NAMESPACE }}
+spec:
+  storageClassName: ""
+  capacity:
+    storage: {{ required "Missing value KAFKA_STORAGESIZE" .Values.KAFKA_STORAGESIZE | quote }}
+  accessModes:
+    - ReadWriteOnce
+  gcePersistentDisk:
+    pdName: {{ required "Missing value KAFKA_VOLUMENAME" .Values.KAFKA_VOLUMENAME }}
+    fsType: ext4
