@@ -21,8 +21,10 @@ spec:
         - env:
           - name: SCHEMA_REGISTRY_HOST_NAME
             value: "schema-registry-2"
-          - name: SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL
-            value: "zookeeper-1:2181,zookeeper-2:2181"
+          - name: SCHEMA_REGISTRY_LISTENERS
+            value: "http://schema-registry-2:8081"
+          - name: SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS
+            value: "kafka-1:9092,kafka-2:9092"
           name: schema-registry-2
           image: {{ required "Missing value SCHEMA_REGISTRY_IMAGE_NAME" .Values.SCHEMA_REGISTRY_IMAGE_NAME }}
           imagePullPolicy: Always
