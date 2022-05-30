@@ -43,7 +43,7 @@ spec:
             requests:
               memory: {{ required "Missing value KAFKA_MEMORY" .Values.KAFKA_MEMORY | quote }}
           volumeMounts:
-            - mountPath: "/kafka/kafka-logs"
+            - mountPath: "/var/lib/kafka/data"
               name: kafka-2-claim0
 
       restartPolicy: Always
