@@ -37,6 +37,8 @@ spec:
             value: "WARN"
           - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
             value: {{ required "Missing value KAFKA_OFFSET_TOPIC_REPLICATION_FACTOR" .Values.KAFKA_OFFSET_TOPIC_REPLICATION_FACTOR | quote }}
+          - name: KAFKA_LOG_RETENTION_HOURS
+            value: "-1"
 
           name: kafka-3
           image: {{ required "Missing value KAFKA_IMAGE_NAME" .Values.KAFKA_IMAGE_NAME }}
@@ -47,7 +49,8 @@ spec:
             requests:
               memory: {{ required "Missing value KAFKA_MEMORY" .Values.KAFKA_MEMORY | quote }}
           volumeMounts:
-            - mountPath: "/var/lib/kafka"
+            - mountPath: /var/lib/kafka/data
+              subPath: data
               name: kafka-3-claim0
 
       restartPolicy: Always
