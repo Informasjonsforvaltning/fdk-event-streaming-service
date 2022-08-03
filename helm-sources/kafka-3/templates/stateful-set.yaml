@@ -36,7 +36,7 @@ spec:
           - name: KAFKA_LOG4J_ROOT_LOGLEVEL
             value: "WARN"
           - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
-            value: { { required "Missing value KAFKA_OFFSET_TOPIC_REPLICATION_FACTOR" .Values.KAFKA_OFFSET_TOPIC_REPLICATION_FACTOR | quote } }
+            value: {{ required "Missing value KAFKA_OFFSET_TOPIC_REPLICATION_FACTOR" .Values.KAFKA_OFFSET_TOPIC_REPLICATION_FACTOR | quote }}
 
           name: kafka-3
           image: {{ required "Missing value KAFKA_IMAGE_NAME" .Values.KAFKA_IMAGE_NAME }}
