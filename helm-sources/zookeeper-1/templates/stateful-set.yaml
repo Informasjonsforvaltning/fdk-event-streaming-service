@@ -39,7 +39,11 @@ spec:
             requests:
               memory: {{ required "Missing value ZOOKEEPER_MEMORY" .Values.ZOOKEEPER_MEMORY | quote }}
           volumeMounts:
-            - mountPath: /var/lib/zookeeper
+            - mountPath: /var/lib/zookeeper/data
+              subPath: data
+              name: zookeeper-1-claim0
+            - mountPath: /var/lib/zookeeper/log
+              subPath: log
               name: zookeeper-1-claim0
       restartPolicy: Always
       volumes:
