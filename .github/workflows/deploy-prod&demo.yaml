@@ -7,11 +7,53 @@ on:
   workflow_dispatch:
 
 jobs:
+  deploy-zookeeper-production:
+    name: Deploy zookeeper
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup gcloud CLI for deploy
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: ${{ secrets.DIGDIR_FDK_PROD_AUTODEPLOY }}
+
+      - name: Apply Helm template
+        run: |
+          helm template \
+          ./helm-sources/zookeeper-1/ > ./kubectlapply-zookeeper-1.yaml \
+          -f ./helm-sources/zookeeper-1/values/prod.yaml 
+          chmod o+w ./kubectlapply-zookeeper-1.yaml
+          cat kubectlapply-zookeeper-1.yaml
+
+      - name: Deploy to GCP
+        run: |
+          gcloud container clusters get-credentials digdir-fdk-prod --region europe-north1-a --project digdir-fdk-prod
+          kubectl apply -f ./kubectlapply-zookeeper-1.yaml --force
+          if ! kubectl --namespace=prod rollout status statefulset zookeeper-1; then
+            kubectl --namespace=prod rollout undo statefulset zookeeper-1
+            kubectl --namespace=prod rollout status statefulset zookeeper-1
+            exit 1
+          fi
+
+      - name: Notify slack
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          author_name: 'Application: FDK Event Streaming Service - zookeeper-1 | Environment: prod'
+          fields: commit,author,workflow
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()
+
   build-and-deploy-production:
+    needs: deploy-zookeeper
     strategy:
       fail-fast: false
       matrix:
-        app: [ zookeeper-1, kafka-1, kafka-2, kafka-3, schema-registry-1 ]
+        app: [ kafka-1, kafka-2, kafka-3, schema-registry-1 ]
 
     name: Deploy ${{ matrix.app }} to prod on merge to main branch
     runs-on: ubuntu-latest
@@ -49,12 +91,54 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         if: always()
 
-  deploy-to-demo:
+  deploy-zookeeper-demo:
     needs: build-and-deploy-production
+    name: Deploy zookeeper
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup gcloud CLI for deploy
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: ${{ secrets.DIGDIR_FDK_DEV_AUTODEPLOY }}
+
+      - name: Apply Helm template
+        run: |
+          helm template \
+          ./helm-sources/zookeeper-1/ > ./kubectlapply-zookeeper-1.yaml \
+          -f ./helm-sources/zookeeper-1/values/demo.yaml 
+          chmod o+w ./kubectlapply-zookeeper-1.yaml
+          cat kubectlapply-zookeeper-1.yaml
+
+      - name: Deploy to GCP
+        run: |
+          gcloud container clusters get-credentials digdir-fdk-dev --region europe-north1-a --project digdir-fdk-dev
+          kubectl apply -f ./kubectlapply-zookeeper-1.yaml --force
+          if ! kubectl --namespace=demo rollout status statefulset zookeeper-1; then
+            kubectl --namespace=demo rollout undo statefulset zookeeper-1
+            kubectl --namespace=demo rollout status statefulset zookeeper-1
+            exit 1
+          fi
+
+      - name: Notify slack
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          author_name: 'Application: FDK Event Streaming Service - zookeeper-1 | Environment: demo'
+          fields: commit,author,workflow
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()
+
+  deploy-to-demo:
+    needs: deploy-zookeeper-demo
     strategy:
       fail-fast: false
       matrix:
-        app: [ zookeeper-1, kafka-1, schema-registry-1 ]
+        app: [ kafka-1, schema-registry-1 ]
 
     name: Deploy ${{ matrix.app }} to demo if prod-deploy is successful
     runs-on: ubuntu-latest

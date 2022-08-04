@@ -1,20 +1,62 @@
 name: Deploy to staging
 
 on:
-  push:
-    pull_request:
-      types: [ ready_for_review, opened, reopened, synchronize ]
-      branches:
-        - main
+  pull_request:
+    types: [ ready_for_review, opened, reopened, synchronize ]
+    branches:
+      - main
+
   # Allows you to run the workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
+  deploy-zookeeper:
+    name: Deploy zookeeper
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup gcloud CLI for deploy
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: ${{ secrets.DIGDIR_FDK_DEV_AUTODEPLOY }}
+
+      - name: Apply Helm template
+        run: |
+          helm template \
+          ./helm-sources/zookeeper-1/ > ./kubectlapply-zookeeper-1.yaml \
+          -f ./helm-sources/zookeeper-1/values/staging.yaml 
+          chmod o+w ./kubectlapply-zookeeper-1.yaml
+          cat kubectlapply-zookeeper-1.yaml
+
+      - name: Deploy to GCP
+        run: |
+          gcloud container clusters get-credentials digdir-fdk-dev --region europe-north1-a --project digdir-fdk-dev
+          kubectl apply -f ./kubectlapply-zookeeper-1.yaml --force
+          if ! kubectl --namespace=staging rollout status statefulset zookeeper-1; then
+            kubectl --namespace=staging rollout undo statefulset zookeeper-1
+            kubectl --namespace=staging rollout status statefulset zookeeper-1
+            exit 1
+          fi
+
+      - name: Notify slack
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          author_name: 'Application: FDK Event Streaming Service - zookeeper-1 | Environment: staging'
+          fields: commit,author,workflow
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()
   deploy:
+    needs: deploy-zookeeper
     strategy:
       fail-fast: false
       matrix:
-        app: [ zookeeper-1, kafka-1, schema-registry-1 ]
+        app: [ kafka-1, schema-registry-1 ]
 
     name: Deploy ${{ matrix.app }}
     runs-on: ubuntu-latest
