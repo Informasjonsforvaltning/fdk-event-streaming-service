@@ -12,5 +12,5 @@ The Kafka cluster contains the following nodes:
 ## Run local cluster
 Usage:
 ```
-docker-compose -f docker-compose.yml up -d
+docker-compose up -d
 ```
