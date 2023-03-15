@@ -12,12 +12,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      - name: Setup gcloud CLI for deploy
-        uses: google-github-actions/auth@v0
+      - name: Auth gcloud CLI for deploy
+        uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.DIGDIR_FDK_PROD_AUTODEPLOY }}
+
+      - name: Get credentials
+        uses: google-github-actions/get-gke-credentials@v1
+        with:
+          cluster_name: digdir-fdk-prod
+          location: europe-north1-a
 
       - name: Apply Helm template
         run: |
@@ -29,7 +36,6 @@ jobs:
 
       - name: Deploy to GCP
         run: |
-          gcloud container clusters get-credentials digdir-fdk-prod --region europe-north1-a --project digdir-fdk-prod
           kubectl apply -f ./kubectlapply-zookeeper-1.yaml --force
           if ! kubectl --namespace=prod rollout status statefulset zookeeper-1; then
             kubectl --namespace=prod rollout undo statefulset zookeeper-1
@@ -59,12 +65,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      - name: Setup gcloud CLI for deploy
-        uses: google-github-actions/auth@v0
+      - name: Auth gcloud CLI for deploy
+        uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.DIGDIR_FDK_PROD_AUTODEPLOY }}
+
+      - name: Get credentials
+        uses: google-github-actions/get-gke-credentials@v1
+        with:
+          cluster_name: digdir-fdk-prod
+          location: europe-north1-a
 
       - name: Apply Helm template
         run: |
@@ -76,7 +89,6 @@ jobs:
 
       - name: Deploy to GCP
         run: |
-          gcloud container clusters get-credentials digdir-fdk-prod --region europe-north1-a --project digdir-fdk-prod
           kubectl apply -f ./kubectlapply-${{ matrix.app }}.yaml --force
           kubectl --namespace=prod rollout restart statefulset ${{ matrix.app }}
 
@@ -97,12 +109,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Setup gcloud CLI for deploy
-        uses: google-github-actions/auth@v0
+        uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.DIGDIR_FDK_DEV_AUTODEPLOY }}
+
+      - name: Get credentials
+        uses: google-github-actions/get-gke-credentials@v1
+        with:
+          cluster_name: digdir-fdk-dev
+          location: europe-north1-a
 
       - name: Apply Helm template
         run: |
@@ -114,7 +133,6 @@ jobs:
 
       - name: Deploy to GCP
         run: |
-          gcloud container clusters get-credentials digdir-fdk-dev --region europe-north1-a --project digdir-fdk-dev
           kubectl apply -f ./kubectlapply-zookeeper-1.yaml --force
           if ! kubectl --namespace=demo rollout status statefulset zookeeper-1; then
             kubectl --namespace=demo rollout undo statefulset zookeeper-1
@@ -144,12 +162,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - name: Setup gcloud CLI for deploy
-        uses: google-github-actions/auth@v0
+      - name: Auth gcloud CLI for deploy
+        uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.DIGDIR_FDK_DEV_AUTODEPLOY }}
+
+      - name: Get credentials
+        uses: google-github-actions/get-gke-credentials@v1
+        with:
+          cluster_name: digdir-fdk-dev
+          location: europe-north1-a
 
       - name: Apply Helm template
         run: |
@@ -161,7 +185,6 @@ jobs:
 
       - name: Deploy to GCP
         run: |
-          gcloud container clusters get-credentials digdir-fdk-dev --region europe-north1-a --project digdir-fdk-dev
           kubectl apply -f ./kubectlapply-${{ matrix.app }}.yaml --force
           kubectl --namespace=demo rollout restart statefulset ${{ matrix.app }}
 

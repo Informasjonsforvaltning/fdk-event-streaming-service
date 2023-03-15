@@ -16,12 +16,18 @@ jobs:
     if: github.event.pull_request.draft == false
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup gcloud CLI for deploy
-        uses: google-github-actions/auth@v0
+        uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.DIGDIR_FDK_DEV_AUTODEPLOY }}
+
+      - name: Get credentials
+        uses: google-github-actions/get-gke-credentials@v1
+        with:
+          cluster_name: digdir-fdk-dev
+          location: europe-north1-a
 
       - name: Apply Helm template
         run: |
@@ -33,7 +39,6 @@ jobs:
 
       - name: Deploy to GCP
         run: |
-          gcloud container clusters get-credentials digdir-fdk-dev --region europe-north1-a --project digdir-fdk-dev
           kubectl apply -f ./kubectlapply-zookeeper-1.yaml --force
           if ! kubectl --namespace=staging rollout status statefulset zookeeper-1; then
             kubectl --namespace=staging rollout undo statefulset zookeeper-1
@@ -51,6 +56,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         if: always()
+
   deploy:
     needs: deploy-zookeeper
     strategy:
@@ -63,12 +69,18 @@ jobs:
     if: github.event.pull_request.draft == false
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - name: Setup gcloud CLI for deploy
-        uses: google-github-actions/auth@v0
+      - name: Auth gcloud CLI for deploy
+        uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.DIGDIR_FDK_DEV_AUTODEPLOY }}
+
+      - name: Get credentials
+        uses: google-github-actions/get-gke-credentials@v1
+        with:
+          cluster_name: digdir-fdk-dev
+          location: europe-north1-a
 
       - name: Apply Helm template
         run: |
@@ -80,7 +92,6 @@ jobs:
 
       - name: Deploy to GCP
         run: |
-          gcloud container clusters get-credentials digdir-fdk-dev --region europe-north1-a --project digdir-fdk-dev
           kubectl apply -f ./kubectlapply-${{ matrix.app }}.yaml --force
           kubectl --namespace=staging rollout restart statefulset ${{ matrix.app }}
 
