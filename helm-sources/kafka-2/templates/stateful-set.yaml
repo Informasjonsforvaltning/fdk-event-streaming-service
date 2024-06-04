@@ -39,6 +39,8 @@ spec:
             value: {{ required "Missing value KAFKA_OFFSET_TOPIC_REPLICATION_FACTOR" .Values.KAFKA_OFFSET_TOPIC_REPLICATION_FACTOR | quote }}
           - name: KAFKA_LOG_RETENTION_HOURS
             value: "-1"
+          - name: KAFKA_REPLICA_FETCH_MAX_BYTES
+            value: "2097152"
 
           name: kafka-2
           image: {{ required "Missing value KAFKA_IMAGE_NAME" .Values.KAFKA_IMAGE_NAME }}
