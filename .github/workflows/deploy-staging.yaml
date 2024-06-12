@@ -62,7 +62,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [ kafka-1, schema-registry-1 ]
+        app: [ kafka-1, schema-registry-1, schema-registry-2 ]
 
     name: Deploy ${{ matrix.app }}
     runs-on: ubuntu-latest

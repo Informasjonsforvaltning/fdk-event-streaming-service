@@ -19,13 +19,14 @@ spec:
     spec:
       containers:
         - env:
-          - name: SCHEMA_REGISTRY_HOST_NAME
-            value: "schema-registry-2"
-          - name: SCHEMA_REGISTRY_LISTENERS
-            value: "http://0.0.0.0:8081"
-          - name: SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS
-            value: { { required "Missing value SCHEMA_REGISTRY_BOOTSTRAP_SERVERS" .Values.SCHEMA_REGISTRY_BOOTSTRAP_SERVERS } }
-
+            - name: SCHEMA_REGISTRY_HOST_NAME
+              value: "schema-registry-2"
+            - name: SCHEMA_REGISTRY_LISTENERS
+              value: "http://0.0.0.0:8081"
+            - name: SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS
+              value: {{ required "Missing value SCHEMA_REGISTRY_BOOTSTRAP_SERVERS" .Values.SCHEMA_REGISTRY_BOOTSTRAP_SERVERS }}
+            - name: SCHEMA_REGISTRY_LEADER_ELIGIBILITY
+              value: "true"
           name: schema-registry-2
           image: {{ required "Missing value SCHEMA_REGISTRY_IMAGE_NAME" .Values.SCHEMA_REGISTRY_IMAGE_NAME }}
           imagePullPolicy: Always
