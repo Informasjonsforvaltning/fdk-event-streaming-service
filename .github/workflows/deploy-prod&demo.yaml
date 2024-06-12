@@ -59,7 +59,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [ kafka-1, kafka-2, kafka-3, schema-registry-1 ]
+        app: [ kafka-1, kafka-2, kafka-3, schema-registry-1, schema-registry-2 ]
 
     name: Deploy ${{ matrix.app }} to prod on merge to main branch
     runs-on: ubuntu-latest
