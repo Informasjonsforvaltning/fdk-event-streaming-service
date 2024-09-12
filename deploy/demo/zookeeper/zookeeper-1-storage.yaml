@@ -1,0 +1,27 @@
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  labels:
+    app: zookeeper-1
+  name: zookeeper-1-claim0
+spec:
+  volumeName: fdk-dev-demo-zookeeper-1
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 9G
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: fdk-dev-demo-zookeeper-1
+spec:
+  capacity:
+    storage: 9G
+  accessModes:
+    - ReadWriteOnce
+  gcePersistentDisk:
+    pdName: fdk-dev-demo-zookeeper-1
+    fsType: ext4

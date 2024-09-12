@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: schema-registry
+spec:
+  replicas: 1
+  serviceName: schema-registry
+  selector:
+    matchLabels:
+      app: schema-registry
+  template:
+    spec:
+      containers:
+        - name: schema-registry
+          env:
+          - name: SCHEMA_REGISTRY_LISTENERS
+            value: "http://0.0.0.0:8081"
+          image: confluentinc/cp-schema-registry
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 2181
+          resources:
+            requests:
+              memory: 100Mi

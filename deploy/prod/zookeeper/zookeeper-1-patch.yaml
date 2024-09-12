@@ -1,0 +1,43 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: zookeeper
+  labels:
+    app: zookeeper-1
+spec:
+  serviceName: zookeeper-1
+  selector:
+    matchLabels:
+      app: zookeeper-1
+  template:
+    metadata:
+      labels:
+        app: zookeeper-1
+    spec:
+      containers:
+        - name: zookeeper
+          env:
+            - name: ZOOKEEPER_SERVER_ID
+              value: "1"
+          volumeMounts:
+            - mountPath: /var/lib/zookeeper/data
+              subPath: data
+              name: zookeeper-1-claim0
+            - mountPath: /var/lib/zookeeper/log
+              subPath: log
+              name: zookeeper-1-claim0
+      volumes:
+        - name: zookeeper-1-claim0
+          persistentVolumeClaim:
+            claimName: zookeeper-1-claim0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper
+  labels:
+    app: zookeeper-1
+spec:
+  selector:
+    app: zookeeper-1

@@ -1,0 +1,13 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: prod
+resources:
+    - ../../../base/kafka
+    - kafka-1-storage.yaml
+
+patchesStrategicMerge:
+    - kafka-1-patch.yaml
+
+transformers:
+    - transformer-1.yaml

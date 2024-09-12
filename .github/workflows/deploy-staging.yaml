@@ -11,97 +11,43 @@ on:
 
 jobs:
   deploy-zookeeper:
-    name: Deploy zookeeper
-    runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
+    name: Deploy zookeeper to staging environment
+    if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false }}
+    uses: Informasjonsforvaltning/workflows/.github/workflows/kustomize-deploy.yaml@main
+    with:
+      app_name: zookeeper
+      environment: staging
+      cluster: digdir-fdk-dev
+      monorepo_app: true
+    secrets:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      DIGDIR_FDK_AUTODEPLOY: ${{ secrets.DIGDIR_FDK_DEV_AUTODEPLOY }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Setup gcloud CLI for deploy
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: ${{ secrets.DIGDIR_FDK_DEV_AUTODEPLOY }}
-
-      - name: Get credentials
-        uses: google-github-actions/get-gke-credentials@v1
-        with:
-          cluster_name: digdir-fdk-dev
-          location: europe-north1-a
-
-      - name: Apply Helm template
-        run: |
-          helm template \
-          ./helm-sources/zookeeper-1/ > ./kubectlapply-zookeeper-1.yaml \
-          -f ./helm-sources/zookeeper-1/values/staging.yaml 
-          chmod o+w ./kubectlapply-zookeeper-1.yaml
-          cat kubectlapply-zookeeper-1.yaml
-
-      - name: Deploy to GCP
-        run: |
-          kubectl apply -f ./kubectlapply-zookeeper-1.yaml --force
-          if ! kubectl --namespace=staging rollout status statefulset zookeeper-1; then
-            kubectl --namespace=staging rollout undo statefulset zookeeper-1
-            kubectl --namespace=staging rollout status statefulset zookeeper-1
-            exit 1
-          fi
-
-      - name: Notify slack
-        uses: 8398a7/action-slack@v3
-        with:
-          status: ${{ job.status }}
-          author_name: 'Application: FDK Event Streaming Service - zookeeper-1 | Environment: staging'
-          fields: commit,author,workflow
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        if: always()
-
-  deploy:
+  deploy-kafka:
+    name: Deploy kafka to staging environment
     needs: deploy-zookeeper
-    strategy:
-      fail-fast: false
-      matrix:
-        app: [ kafka-1, schema-registry-1, schema-registry-2 ]
+    uses: Informasjonsforvaltning/workflows/.github/workflows/kustomize-deploy.yaml@main
+    with:
+      app_name: kafka
+      environment: staging
+      cluster: digdir-fdk-dev
+      monorepo_app: true
+    secrets:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      DIGDIR_FDK_AUTODEPLOY: ${{ secrets.DIGDIR_FDK_DEV_AUTODEPLOY }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
-    name: Deploy ${{ matrix.app }}
-    runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Auth gcloud CLI for deploy
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: ${{ secrets.DIGDIR_FDK_DEV_AUTODEPLOY }}
-
-      - name: Get credentials
-        uses: google-github-actions/get-gke-credentials@v1
-        with:
-          cluster_name: digdir-fdk-dev
-          location: europe-north1-a
-
-      - name: Apply Helm template
-        run: |
-          helm template \
-          ./helm-sources/${{ matrix.app }}/ > ./kubectlapply-${{ matrix.app }}.yaml \
-          -f ./helm-sources/${{ matrix.app }}/values/staging.yaml 
-          chmod o+w ./kubectlapply-${{ matrix.app }}.yaml
-          cat kubectlapply-${{ matrix.app }}.yaml
-
-      - name: Deploy to GCP
-        run: |
-          kubectl apply -f ./kubectlapply-${{ matrix.app }}.yaml --force
-          kubectl --namespace=staging rollout restart statefulset ${{ matrix.app }}
-
-      - name: Notify slack
-        uses: 8398a7/action-slack@v3
-        with:
-          status: ${{ job.status }}
-          author_name: 'Application: FDK Event Streaming Service - ${{ matrix.app }} | Environment: staging'
-          fields: commit,author,workflow
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        if: always()
+  deploy-schema-registry:
+    name: Deploy schema-registry to staging environment
+    needs: deploy-kafka
+    uses: Informasjonsforvaltning/workflows/.github/workflows/kustomize-deploy.yaml@main
+    with:
+      app_name: schema-registry
+      environment: staging
+      cluster: digdir-fdk-dev
+      monorepo_app: true
+    secrets:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      DIGDIR_FDK_AUTODEPLOY: ${{ secrets.DIGDIR_FDK_DEV_AUTODEPLOY }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

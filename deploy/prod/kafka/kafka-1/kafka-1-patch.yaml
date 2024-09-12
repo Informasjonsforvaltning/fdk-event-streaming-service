@@ -1,0 +1,45 @@
+---
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: kafka
+  labels:
+    app: kafka-1
+spec:
+  replicas: 1
+  serviceName: kafka-1
+  selector:
+    matchLabels:
+      app: kafka-1
+  template:
+    metadata:
+      labels:
+          app: kafka-1
+    spec:
+      containers:
+        - name: kafka
+          env:
+            - name: KAFKA_BROKER_ID
+              value: "1"
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: PLAINTEXT://kafka-1.prod:9092
+            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: "3"
+          volumeMounts:
+            - mountPath: /var/lib/kafka/data
+              subPath: data
+              name: kafka-1-claim0
+      volumes:
+        - name: kafka-1-claim0
+          persistentVolumeClaim:
+            claimName: kafka-1-claim0
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: kafka
+  labels:
+    app: kafka-1
+spec:
+  selector:
+    app: kafka-1

@@ -1,9 +1,0 @@
-#namespace
-NAMESPACE: prod
-
-#kafka broker
-KAFKA_IMAGE_NAME: confluentinc/cp-kafka
-KAFKA_MEMORY: "1500Mi"
-KAFKA_VOLUMENAME: fdk-prod-kafka-2
-KAFKA_STORAGESIZE: "99G"
-KAFKA_OFFSET_TOPIC_REPLICATION_FACTOR: "3"
