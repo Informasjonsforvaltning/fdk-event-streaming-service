@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: demo
 resources:
     - ../../base/zookeeper
+    - zookeeper-1-storage.yaml
 
 patchesStrategicMerge:
     - zookeeper-1-patch.yaml

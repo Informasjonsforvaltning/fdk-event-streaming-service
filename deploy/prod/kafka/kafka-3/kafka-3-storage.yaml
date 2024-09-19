@@ -6,6 +6,7 @@ metadata:
   labels:
     app: kafka-3
 spec:
+  storageClassName: ""
   volumeName: fdk-prod-kafka-3
   accessModes:
     - ReadWriteOnce
@@ -20,6 +21,7 @@ metadata:
   labels:
     app: kafka-3
 spec:
+  storageClassName: ""
   capacity:
     storage: 199G
   accessModes:
