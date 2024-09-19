@@ -12,7 +12,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 199G
+      storage: 99G
 ---
 kind: PersistentVolume
 apiVersion: v1
@@ -23,7 +23,7 @@ metadata:
 spec:
   storageClassName: ""
   capacity:
-    storage: 199G
+    storage: 99G
   accessModes:
     - ReadWriteOnce
   gcePersistentDisk:
