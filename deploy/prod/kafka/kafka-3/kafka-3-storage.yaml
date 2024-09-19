@@ -1,0 +1,29 @@
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: kafka-3-claim0
+  labels:
+    app: kafka-3
+spec:
+  volumeName: fdk-prod-kafka-3
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 199G
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: fdk-prod-kafka-3
+  labels:
+    app: kafka-3
+spec:
+  capacity:
+    storage: 199G
+  accessModes:
+    - ReadWriteOnce
+  gcePersistentDisk:
+    pdName: fdk-prod-kafka-3
+    fsType: ext4

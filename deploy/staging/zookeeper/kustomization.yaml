@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: staging
+resources:
+- ../../base/zookeeper
+- zookeeper-1-storage.yaml
+
+patchesStrategicMerge:
+- zookeeper-1-patch.yaml
+
+transformers:
+    - transformer-1.yaml

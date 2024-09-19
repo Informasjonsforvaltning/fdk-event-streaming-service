@@ -1,8 +1,0 @@
-#namespace
-NAMESPACE: staging
-
-#kafka broker
-ZOOKEEPER_IMAGE_NAME: confluentinc/cp-zookeeper
-ZOOKEEPER_MEMORY: "100Mi"
-ZOOKEEPER_VOLUMENAME: fdk-dev-staging-zookeeper-1
-ZOOKEEPER_STORAGESIZE: "9G"
