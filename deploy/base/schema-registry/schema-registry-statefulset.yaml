@@ -15,7 +15,7 @@ spec:
           env:
           - name: SCHEMA_REGISTRY_LISTENERS
             value: "http://0.0.0.0:8081"
-          image: confluentinc/cp-schema-registry
+          image: confluentinc/cp-schema-registry:7.7.1
           imagePullPolicy: Always
           ports:
             - containerPort: 2181
