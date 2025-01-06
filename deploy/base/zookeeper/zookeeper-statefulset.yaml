@@ -16,7 +16,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: zookeeper
-          image: confluentinc/cp-zookeeper:7.7.1
+          image: confluentinc/cp-zookeeper:7.8.0
           imagePullPolicy: Always
           env:
           - name: ZOOKEEPER_CLIENT_PORT

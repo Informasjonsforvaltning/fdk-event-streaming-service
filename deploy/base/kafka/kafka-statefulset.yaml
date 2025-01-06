@@ -17,7 +17,7 @@ spec:
       containers:
         - name: kafka
           imagePullPolicy: Always
-          image: confluentinc/cp-kafka:7.7.1
+          image: confluentinc/cp-kafka:7.8.0
           env:
             - name: KAFKA_ZOOKEEPER_CONNECT
               value: "zookeeper-1:2181"
