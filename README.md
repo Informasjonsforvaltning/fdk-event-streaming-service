@@ -1,5 +1,5 @@
 # FDK Event Streaming Service (Kafka)
-This repository contains the code for the FDK Event Streaming Service, which is built on top of Apache Kafka. 
+This repository contains the framework for the FDK Event Streaming Service, which is built on top of Apache Kafka. 
 The service is designed to handle event streaming and processing for the Data.norge.no ecosystem.
 
 ## Getting Started
