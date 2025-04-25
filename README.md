@@ -1,16 +1,29 @@
 # FDK Event Streaming Service (Kafka)
+This repository contains the framework for the FDK Event Streaming Service, which is built on top of Apache Kafka. 
+The service is designed to handle event streaming and processing for the Data.norge.no ecosystem.
 
-## Kafka Cluster
-The Kafka cluster contains the following nodes:
-- Zookeeper 1
-- Zookeeper 2 (not in use)
-- Kafka 1 (broker 1)
-- Kafka 2 (broker 2, prod only)
-- Kafka 2 (broker 3, prod only)
-- Schema registry 1 
-- Schema registry 2 (not in use)
-## Run local cluster
-Usage:
+## Getting Started
+
+These instructions will help you set up the project locally for development and testing purposes.
+
+## Prerequisites
+Ensure you have the following installed:
+- Docker
+- bash
+- curl
+
+### Running locally
+Clone the repository:
+```sh
+git clone https://github.com/Informasjonsforvaltning/fdk-event-streaming-service.git
+cd fdk-event-streaming-service
 ```
-docker-compose up -d
+
+Run local cluster:
+```sh
+docker compose up -d
 ```
+
+### Testing
+The scripts in the `scripts` directory are run as part of the docker-compose process.
+They are responsible for creating the necessary topics and produces a couple of messages.
