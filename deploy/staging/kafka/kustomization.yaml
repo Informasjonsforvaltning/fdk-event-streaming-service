@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: staging
 resources:
     - ../../base/kafka
+    - kafka-1-storage.yaml
 
 patchesStrategicMerge:
     - kafka-1-patch.yaml
