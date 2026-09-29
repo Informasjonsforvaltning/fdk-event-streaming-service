@@ -31,8 +31,7 @@ The local cluster is a single-node KRaft cluster (no ZooKeeper). If you have a
 ## Deployment
 
 Kubernetes manifests live in `deploy/` (Kustomize base + overlays per
-environment). The ongoing ZooKeeper → KRaft migration and the Confluent
-Platform 8.x upgrade are documented in [docs/kraft-migration.md](docs/kraft-migration.md).
+environment).
 
 ### Testing
 The scripts in the `scripts` directory are run as part of the docker-compose process.

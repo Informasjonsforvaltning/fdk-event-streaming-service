@@ -27,7 +27,7 @@ spec:
               value: "PLAINTEXT"
             # ZooKeeper -> KRaft migration (KIP-866), step 1: brokers stay in
             # ZooKeeper mode but register with the KRaft controller quorum so the
-            # controller can migrate the metadata. See docs/kraft-migration.md.
+            # controller can migrate the metadata.
             - name: KAFKA_INTER_BROKER_PROTOCOL_VERSION
               value: "3.9"
             - name: KAFKA_ZOOKEEPER_METADATA_MIGRATION_ENABLE
