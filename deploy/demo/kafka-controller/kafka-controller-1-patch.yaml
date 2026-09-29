@@ -22,8 +22,6 @@ spec:
               value: "101"
             - name: KAFKA_CONTROLLER_QUORUM_VOTERS
               value: "101@kafka-controller-1:9093"
-            # MUST be the id of the existing ZooKeeper-backed cluster in this
-            # environment, see docs/kraft-migration.md ("Read the cluster id").
             - name: CLUSTER_ID
               value: "X9S0zQbNQYq9E6ycvLWNLQ"
           volumeMounts:
