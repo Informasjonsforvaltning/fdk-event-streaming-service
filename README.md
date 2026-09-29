@@ -24,6 +24,15 @@ Run local cluster:
 docker compose up -d
 ```
 
+The local cluster is a single-node KRaft cluster (no ZooKeeper). If you have a
+`kafka-data` directory from before the KRaft switch, delete it first:
+`rm -rf kafka-data`.
+
+## Deployment
+
+Kubernetes manifests live in `deploy/` (Kustomize base + overlays per
+environment).
+
 ### Testing
 The scripts in the `scripts` directory are run as part of the docker-compose process.
 They are responsible for creating the necessary topics and produces a couple of messages.
