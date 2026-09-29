@@ -97,12 +97,19 @@ metadata to both KRaft and ZooKeeper).
 Verify:
 
 ```sh
-# Controller went PRE_MIGRATION -> MIGRATION and is now the active controller (id 101)
-kubectl -n <env> logs kafka-controller-1-0 | grep -E 'ZK migration state|Completed migration'
+# KRaft controller (id 101) is quorum leader, every broker is listed as an observer
 kubectl -n <env> exec kafka-controller-1-0 -- kafka-metadata-quorum --bootstrap-controller localhost:9093 describe --status
+# ZooKeeper now says the cluster controller is 101 ...
+kubectl -n <env> exec zookeeper-1-0 -- zookeeper-shell localhost:2181 get /controller
+# ... and the migration record exists (kraft_controller_id 101, non-zero kraft_metadata_offset)
+kubectl -n <env> exec zookeeper-1-0 -- zookeeper-shell localhost:2181 get /migration
 # Data still there:
 kubectl -n <env> exec kafka-1-0 -- kafka-topics --bootstrap-server localhost:9092 --describe
 ```
+
+The "Completed migration of metadata from ZooKeeper to KRaft" log line is
+written by a logger under `org.apache.kafka`, which the root log level WARN
+suppresses, so do not wait for it; the two ZooKeeper nodes above are the proof.
 
 Expect one broker crash-loop iteration if a broker pod is recreated faster
 than its ZooKeeper session expires: it fails registration with
