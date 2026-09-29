@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-controller
+  serviceName: kafka-controller
+  template:
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: kafka-controller
+          imagePullPolicy: Always
+          image: confluentinc/cp-kafka:7.9.10
+          # The cp-kafka image ships KAFKA_ADVERTISED_LISTENERS="" as a built-in
+          # env var. 7.9.x unsets it for controller-only nodes, 8.x does not and
+          # then renders an empty advertised.listeners that Kafka 4.x rejects.
+          # Unsetting it here keeps the step 4 image bump a pure tag change.
+          command:
+            - /bin/bash
+            - -c
+            - unset KAFKA_ADVERTISED_LISTENERS; exec /etc/confluent/docker/run
+          env:
+            - name: KAFKA_PROCESS_ROLES
+              value: "controller"
+            - name: KAFKA_LISTENERS
+              value: "CONTROLLER://0.0.0.0:9093"
+            - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+              value: "CONTROLLER:PLAINTEXT"
+            - name: KAFKA_CONTROLLER_LISTENER_NAMES
+              value: "CONTROLLER"
+            # Migration mode (KIP-866): the controller reads existing metadata
+            # from ZooKeeper and takes over as the active controller.
+            # Remove these two together once the migration is finalized (step 3).
+            - name: KAFKA_ZOOKEEPER_METADATA_MIGRATION_ENABLE
+              value: "true"
+            - name: KAFKA_ZOOKEEPER_CONNECT
+              value: "zookeeper-1:2181"
+            - name: KAFKA_HEAP_OPTS
+              value: "-Xms512M -Xmx512M"
+            - name: KAFKA_LOG4J_ROOT_LOGLEVEL
+              value: "WARN"
+          ports:
+            - containerPort: 9093
+          resources:
+            requests:
+              memory: 768Mi
+              cpu: 100m
+            limits:
+              memory: 768Mi

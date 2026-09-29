@@ -1,0 +1,15 @@
+apiVersion: builtin
+kind: PrefixSuffixTransformer
+metadata:
+  name: suffixer
+suffix: "-1"
+fieldSpecs:
+- path: metadata/name
+  apiVersion: apps/v1
+  kind: StatefulSet
+- path: spec/template/spec/containers/name
+  apiVersion: apps/v1
+  kind: StatefulSet
+- path: metadata/name
+  apiVersion: apps/v1
+  kind: Service

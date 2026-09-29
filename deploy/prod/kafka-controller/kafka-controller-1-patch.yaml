@@ -1,0 +1,46 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka-controller
+  labels:
+    app: kafka-controller-1
+spec:
+  serviceName: kafka-controller-1
+  selector:
+    matchLabels:
+      app: kafka-controller-1
+  template:
+    metadata:
+      labels:
+        app: kafka-controller-1
+    spec:
+      containers:
+        - name: kafka-controller
+          env:
+            - name: KAFKA_NODE_ID
+              value: "101"
+            - name: KAFKA_CONTROLLER_QUORUM_VOTERS
+              value: "101@kafka-controller-1:9093"
+            # MUST be the id of the existing ZooKeeper-backed cluster in this
+            # environment, see docs/kraft-migration.md ("Read the cluster id").
+            - name: CLUSTER_ID
+              value: "rnYLgXH8QVeDbmZqzC1n6g"
+          volumeMounts:
+            - mountPath: /var/lib/kafka/data
+              subPath: data
+              name: kafka-controller-1-claim0
+      volumes:
+        - name: kafka-controller-1-claim0
+          persistentVolumeClaim:
+            claimName: kafka-controller-1-claim0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-controller
+  labels:
+    app: kafka-controller-1
+spec:
+  selector:
+    app: kafka-controller-1
