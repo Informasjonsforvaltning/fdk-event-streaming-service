@@ -13,23 +13,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy-zookeeper:
-    name: Deploy zookeeper to staging environment
-    if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false }}
-    uses: Informasjonsforvaltning/workflows/.github/workflows/kustomize-deploy.yaml@main
-    with:
-      app_name: zookeeper
-      environment: staging
-      cluster: digdir-fdk-dev
-      monorepo_app: true
-    secrets:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      DIGDIR_FDK_AUTODEPLOY: ${{ secrets.DIGDIR_FDK_DEV_AUTODEPLOY }}
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
   deploy-kafka-controller:
     name: Deploy kafka-controller to staging environment
-    needs: [ deploy-zookeeper ]
+    if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false }}
     uses: Informasjonsforvaltning/workflows/.github/workflows/kustomize-deploy.yaml@main
     with:
       app_name: kafka-controller

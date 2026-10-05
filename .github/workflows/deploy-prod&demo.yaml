@@ -11,22 +11,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy-zookeeper:
-    name: Deploy zookeeper to prod environment
-    uses: Informasjonsforvaltning/workflows/.github/workflows/kustomize-deploy.yaml@main
-    with:
-      app_name: zookeeper
-      environment: prod
-      cluster: digdir-fdk-prod
-      monorepo_app: true
-    secrets:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      DIGDIR_FDK_AUTODEPLOY: ${{ secrets.DIGDIR_FDK_PROD_AUTODEPLOY }}
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
   deploy-kafka-controller-prod:
     name: Deploy kafka-controller to prod environment
-    needs: [ deploy-zookeeper ]
     uses: Informasjonsforvaltning/workflows/.github/workflows/kustomize-deploy.yaml@main
     with:
       app_name: kafka-controller
@@ -66,23 +52,9 @@ jobs:
       DIGDIR_FDK_AUTODEPLOY: ${{ secrets.DIGDIR_FDK_PROD_AUTODEPLOY }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
-  deploy-zookeeper-demo:
-    name: Deploy zookeeper to demo environment
-    needs: [ deploy-schema-registry-prod ]
-    uses: Informasjonsforvaltning/workflows/.github/workflows/kustomize-deploy.yaml@main
-    with:
-      app_name: zookeeper
-      environment: demo
-      cluster: digdir-fdk-dev
-      monorepo_app: true
-    secrets:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      DIGDIR_FDK_AUTODEPLOY: ${{ secrets.DIGDIR_FDK_DEV_AUTODEPLOY }}
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
   deploy-kafka-controller-demo:
     name: Deploy kafka-controller to demo environment
-    needs: [ deploy-zookeeper-demo ]
+    needs: [ deploy-schema-registry-prod ]
     uses: Informasjonsforvaltning/workflows/.github/workflows/kustomize-deploy.yaml@main
     with:
       app_name: kafka-controller
