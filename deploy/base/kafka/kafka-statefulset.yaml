@@ -17,7 +17,7 @@ spec:
       containers:
         - name: kafka
           imagePullPolicy: Always
-          image: confluentinc/cp-kafka:7.9.10
+          image: confluentinc/cp-kafka:8.3.2
           env:
             - name: KAFKA_PROCESS_ROLES
               value: "broker"
