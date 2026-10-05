@@ -17,7 +17,7 @@ spec:
       containers:
         - name: kafka-controller
           imagePullPolicy: Always
-          image: confluentinc/cp-kafka:7.9.10
+          image: confluentinc/cp-kafka:8.3.2
           # The cp-kafka image ships KAFKA_ADVERTISED_LISTENERS="" as a built-in
           # env var. 7.9.x unsets it for controller-only nodes, 8.x does not and
           # then renders an empty advertised.listeners that Kafka 4.x rejects.
