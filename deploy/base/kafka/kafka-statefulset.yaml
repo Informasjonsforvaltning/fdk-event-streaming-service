@@ -21,10 +21,30 @@ spec:
           env:
             - name: KAFKA_PROCESS_ROLES
               value: "broker"
+            # The SASL listener is named SASL rather than SASL_PLAINTEXT: the
+            # cp-kafka entrypoint requires a JAAS file via KAFKA_OPTS when an
+            # advertised listener matches SASL_*://, and the listener-scoped
+            # sasl.jaas.config below makes that file unnecessary.
+            - name: KAFKA_LISTENERS
+              value: "PLAINTEXT://0.0.0.0:9092,SASL://0.0.0.0:9094"
             - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
-              value: "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT"
+              value: "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT,SASL:SASL_PLAINTEXT"
             - name: KAFKA_INTER_BROKER_LISTENER_NAME
               value: "PLAINTEXT"
+            - name: KAFKA_SASL_ENABLED_MECHANISMS
+              value: "SCRAM-SHA-512"
+            # Triple underscore is the cp-kafka spelling of a dash:
+            # listener.name.sasl.scram-sha-512.sasl.jaas.config
+            - name: KAFKA_LISTENER_NAME_SASL_SCRAM___SHA___512_SASL_JAAS_CONFIG
+              value: "org.apache.kafka.common.security.scram.ScramLoginModule required;"
+            - name: KAFKA_AUTHORIZER_CLASS_NAME
+              value: "org.apache.kafka.metadata.authorizer.StandardAuthorizer"
+            - name: KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND
+              value: "true"
+            # The PLAINTEXT listener carries inter-broker and controller
+            # traffic and yields the ANONYMOUS principal.
+            - name: KAFKA_SUPER_USERS
+              value: "User:ANONYMOUS;User:admin"
             - name: KAFKA_CONTROLLER_QUORUM_VOTERS
               value: "101@kafka-controller-1:9093"
             - name: KAFKA_CONTROLLER_LISTENER_NAMES
@@ -35,6 +55,7 @@ spec:
               value: "WARN"
           ports:
             - containerPort: 9092
+            - containerPort: 9094
           resources:
             requests:
               memory: 1500Mi
