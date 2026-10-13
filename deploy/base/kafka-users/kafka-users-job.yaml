@@ -1,0 +1,51 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kafka-users
+spec:
+  # A Job template is immutable, so the finished Job is removed after a while
+  # to let the next deploy create it again.
+  ttlSecondsAfterFinished: 600
+  backoffLimit: 4
+  activeDeadlineSeconds: 900
+  template:
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+        - name: kafka-users
+          image: confluentinc/cp-kafka:8.3.2
+          env:
+            - name: BOOTSTRAP_SERVER
+              value: "kafka-1:9092"
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -euo pipefail
+              until kafka-broker-api-versions --bootstrap-server "$BOOTSTRAP_SERVER" > /dev/null 2>&1; do
+                echo "waiting for $BOOTSTRAP_SERVER"
+                sleep 10
+              done
+              for file in /etc/kafka-users/*; do
+                user=$(basename "$file")
+                kafka-configs --bootstrap-server "$BOOTSTRAP_SERVER" --alter \
+                  --entity-type users --entity-name "$user" \
+                  --add-config "SCRAM-SHA-512=[iterations=8192,password=$(cat "$file")]"
+              done
+          volumeMounts:
+            - name: users
+              mountPath: /etc/kafka-users
+              readOnly: true
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: users
+          secret:
+            secretName: kafka-scram-users
