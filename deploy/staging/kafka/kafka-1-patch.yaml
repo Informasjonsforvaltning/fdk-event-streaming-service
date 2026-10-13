@@ -24,7 +24,7 @@ spec:
             - name: CLUSTER_ID
               value: "7WvZ68JPS4eKeWz79NLoHw"
             - name: KAFKA_ADVERTISED_LISTENERS
-              value: PLAINTEXT://kafka-1.staging:9092
+              value: PLAINTEXT://kafka-1.staging:9092,SASL://kafka-1.staging:9094
             - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
               value: "1"
           volumeMounts:

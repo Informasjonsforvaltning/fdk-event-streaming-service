@@ -35,6 +35,13 @@ spec:
               value: "CONTROLLER:PLAINTEXT"
             - name: KAFKA_CONTROLLER_LISTENER_NAMES
               value: "CONTROLLER"
+            # Must match the brokers; ACLs live in the KRaft metadata log.
+            - name: KAFKA_AUTHORIZER_CLASS_NAME
+              value: "org.apache.kafka.metadata.authorizer.StandardAuthorizer"
+            - name: KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND
+              value: "true"
+            - name: KAFKA_SUPER_USERS
+              value: "User:ANONYMOUS;User:admin"
             - name: KAFKA_HEAP_OPTS
               value: "-Xms512M -Xmx512M"
             - name: KAFKA_LOG4J_ROOT_LOGLEVEL
