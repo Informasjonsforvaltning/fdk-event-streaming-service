@@ -39,7 +39,13 @@ spec:
           image: confluentinc/cp-schema-registry:8.3.2
           imagePullPolicy: Always
           ports:
-            - containerPort: 2181
+            - containerPort: 8081
+          readinessProbe:
+            httpGet:
+              path: /subjects
+              port: 8081
+            initialDelaySeconds: 20
+            periodSeconds: 10
           resources:
             requests:
               memory: 100Mi
