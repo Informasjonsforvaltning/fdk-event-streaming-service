@@ -15,10 +15,37 @@ spec:
           env:
           - name: SCHEMA_REGISTRY_LISTENERS
             value: "http://0.0.0.0:8081"
+          # Kafka connection comes from the per-client secret delivered by fdk-infra.
+          - name: SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS
+            valueFrom:
+              secretKeyRef:
+                name: kafka-user-schema-registry
+                key: BROKERS
+          - name: SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL
+            valueFrom:
+              secretKeyRef:
+                name: kafka-user-schema-registry
+                key: SECURITY_PROTOCOL
+          - name: SCHEMA_REGISTRY_KAFKASTORE_SASL_MECHANISM
+            valueFrom:
+              secretKeyRef:
+                name: kafka-user-schema-registry
+                key: SASL_MECHANISM
+          - name: SCHEMA_REGISTRY_KAFKASTORE_SASL_JAAS_CONFIG
+            valueFrom:
+              secretKeyRef:
+                name: kafka-user-schema-registry
+                key: SASL_JAAS_CONFIG
           image: confluentinc/cp-schema-registry:8.3.2
           imagePullPolicy: Always
           ports:
-            - containerPort: 2181
+            - containerPort: 8081
+          readinessProbe:
+            httpGet:
+              path: /subjects
+              port: 8081
+            initialDelaySeconds: 20
+            periodSeconds: 10
           resources:
             requests:
               memory: 100Mi
