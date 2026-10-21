@@ -19,19 +19,26 @@ spec:
           image: confluentinc/cp-kafka:8.3.2
           env:
             - name: BOOTSTRAP_SERVER
-              value: "kafka-1:9092"
+              value: "kafka-1:9094"
           command:
             - /bin/bash
             - -c
             - |
               set -euo pipefail
-              until kafka-broker-api-versions --bootstrap-server "$BOOTSTRAP_SERVER" > /dev/null 2>&1; do
+              umask 077
+              config=/tmp/admin.properties
+              {
+                echo "security.protocol=SASL_PLAINTEXT"
+                echo "sasl.mechanism=SCRAM-SHA-512"
+                echo "sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required username=\"admin\" password=\"$(cat /etc/kafka-users/admin)\";"
+              } > "$config"
+              until kafka-broker-api-versions --bootstrap-server "$BOOTSTRAP_SERVER" --command-config "$config" > /dev/null; do
                 echo "waiting for $BOOTSTRAP_SERVER"
                 sleep 10
               done
               for file in /etc/kafka-users/*; do
                 user=$(basename "$file")
-                kafka-configs --bootstrap-server "$BOOTSTRAP_SERVER" --alter \
+                kafka-configs --bootstrap-server "$BOOTSTRAP_SERVER" --command-config "$config" --alter \
                   --entity-type users --entity-name "$user" \
                   --add-config "SCRAM-SHA-512=[iterations=8192,password=$(cat "$file")]"
               done
