@@ -24,9 +24,23 @@ jobs:
       DIGDIR_FDK_AUTODEPLOY: ${{ secrets.DIGDIR_FDK_PROD_AUTODEPLOY }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
+  deploy-kafka-acls-prod:
+    name: Deploy kafka-acls to prod environment
+    needs: [ deploy-kafka-controller-prod ]
+    uses: Informasjonsforvaltning/workflows/.github/workflows/kustomize-deploy.yaml@main
+    with:
+      app_name: kafka-acls
+      environment: prod
+      cluster: digdir-fdk-prod
+      monorepo_app: true
+    secrets:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      DIGDIR_FDK_AUTODEPLOY: ${{ secrets.DIGDIR_FDK_PROD_AUTODEPLOY }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
   deploy-kafka-prod:
     name: Deploy kafka to prod environment
-    needs: [ deploy-kafka-controller-prod ]
+    needs: [ deploy-kafka-acls-prod ]
     uses: Informasjonsforvaltning/workflows/.github/workflows/kustomize-deploy.yaml@main
     with:
       app_name: kafka
@@ -80,9 +94,23 @@ jobs:
       DIGDIR_FDK_AUTODEPLOY: ${{ secrets.DIGDIR_FDK_DEV_AUTODEPLOY }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
+  deploy-kafka-acls-demo:
+    name: Deploy kafka-acls to demo environment
+    needs: [ deploy-kafka-controller-demo ]
+    uses: Informasjonsforvaltning/workflows/.github/workflows/kustomize-deploy.yaml@main
+    with:
+      app_name: kafka-acls
+      environment: demo
+      cluster: digdir-fdk-dev
+      monorepo_app: true
+    secrets:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      DIGDIR_FDK_AUTODEPLOY: ${{ secrets.DIGDIR_FDK_DEV_AUTODEPLOY }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
   deploy-kafka-demo:
     name: Deploy kafka to demo environment
-    needs: [ deploy-kafka-controller-demo ]
+    needs: [ deploy-kafka-acls-demo ]
     uses: Informasjonsforvaltning/workflows/.github/workflows/kustomize-deploy.yaml@main
     with:
       app_name: kafka

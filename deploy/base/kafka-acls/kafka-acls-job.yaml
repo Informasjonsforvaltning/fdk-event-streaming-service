@@ -1,0 +1,127 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kafka-acls
+spec:
+  # A Job template is immutable, so the finished Job is removed after a while
+  # to let the next deploy create it again.
+  ttlSecondsAfterFinished: 600
+  backoffLimit: 4
+  activeDeadlineSeconds: 1800
+  template:
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+        - name: kafka-acls
+          image: confluentinc/cp-kafka:8.3.2
+          env:
+            - name: BOOTSTRAP_SERVER
+              value: "kafka-1:9094"
+            # One ACL grant per line: <user> <topic|group> <operations> <names>
+            # Operations and names are comma separated. Describe is implied by
+            # Read and Write. The list is additive; grants that disappear from
+            # it must be removed by hand.
+            - name: ACLS
+              value: |
+                fdk-harvest-admin-service topic Read,Write harvest-events
+                fdk-harvest-admin-service group Read fdk-harvest-admin-service
+                fdk-harvester topic Read,Write harvest-events
+                fdk-harvester topic Write concept-events,data-service-events,dataset-events,event-events,information-model-events,service-events
+                fdk-harvester group Read fdk-harvester
+                fdk-reasoning-service topic Read,Write concept-events,data-service-events,dataset-events,event-events,information-model-events,service-events
+                fdk-reasoning-service topic Write harvest-events
+                fdk-reasoning-service group Read fdk-reasoning-service
+                fdk-parser-service topic Read concept-events,data-service-events,dataset-events,event-events,information-model-events,service-events
+                fdk-parser-service topic Write harvest-events,rdf-parse-events
+                fdk-parser-service group Read fdk-parser-service
+                fdk-llm-search-service topic Read concept-events,data-service-events,dataset-events,event-events,information-model-events,service-events,rdf-parse-events
+                fdk-llm-search-service topic Write harvest-events
+                fdk-llm-search-service group Read fdk-llm-search-service
+                fdk-resource-service topic Read concept-events,data-service-events,dataset-events,event-events,information-model-events,service-events,rdf-parse-events
+                fdk-resource-service topic Write harvest-events
+                fdk-resource-service group Read fdk-resource-service
+                fdk-search-service topic Read concept-events,data-service-events,dataset-events,event-events,information-model-events,service-events,rdf-parse-events
+                fdk-search-service topic Write harvest-events
+                fdk-search-service group Read fdk-search-service
+                fdk-sparql-service topic Read concept-events,data-service-events,dataset-events,event-events,information-model-events,service-events
+                fdk-sparql-service topic Write harvest-events
+                fdk-sparql-service group Read fdk-sparql-service
+                fdk-statistics-service topic Read concept-events,data-service-events,dataset-events,event-events,information-model-events,service-events,rdf-parse-events
+                fdk-statistics-service group Read fdk-statistics-service
+                fdk-harvest-archive topic Read concept-events,data-service-events,dataset-events,event-events,information-model-events,service-events
+                fdk-harvest-archive group Read fdk-harvest-archive
+                fdk-mqa-assmentator topic Read dataset-events
+                fdk-mqa-assmentator topic Write mqa-dataset-events
+                fdk-mqa-assmentator group Read fdk-mqa-assmentator
+                fdk-mqa-dcat-validator topic Read mqa-dataset-events
+                fdk-mqa-dcat-validator topic Write mqa-events
+                fdk-mqa-dcat-validator group Read fdk-mqa-dcat-validator
+                fdk-mqa-property-checker topic Read mqa-dataset-events
+                fdk-mqa-property-checker topic Write mqa-events
+                fdk-mqa-property-checker group Read fdk-mqa-property-checker
+                fdk-mqa-url-checker topic Read mqa-dataset-events
+                fdk-mqa-url-checker topic Write mqa-events
+                fdk-mqa-url-checker group Read fdk-mqa-url-checker
+                fdk-mqa-scoring-service topic Read mqa-events
+                fdk-mqa-scoring-service group Read fdk-mqa-scoring-service
+                schema-registry topic Read,Write,DescribeConfigs _schemas
+                schema-registry group Read schema-registry
+                kafka-exporter topic Describe *
+                kafka-exporter group Describe *
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -euo pipefail
+              umask 077
+              config=/tmp/admin.properties
+              {
+                echo "security.protocol=SASL_PLAINTEXT"
+                echo "sasl.mechanism=SCRAM-SHA-512"
+                echo "sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required username=\"admin\" password=\"$(cat /etc/kafka-users/admin)\";"
+              } > "$config"
+              until kafka-broker-api-versions --bootstrap-server "$BOOTSTRAP_SERVER" --command-config "$config" > /dev/null; do
+                echo "waiting for $BOOTSTRAP_SERVER"
+                sleep 10
+              done
+              acls() {
+                local out
+                out=$(kafka-acls --bootstrap-server "$BOOTSTRAP_SERVER" --command-config "$config" "$@" < /dev/null) \
+                  || { printf '%s\n' "$out"; exit 1; }
+              }
+              # A resource is enforced as soon as it has one ACL. A temporary
+              # allow-all keeps every client working while the grants below are
+              # added one by one; removing it flips them all on at once.
+              acls --add --allow-principal 'User:*' --operation All --topic '*' --group '*'
+              while read -r user type operations names; do
+                [ -z "$user" ] && continue
+                args=(--add --allow-principal "User:$user")
+                IFS=, read -ra ops <<< "$operations"
+                for op in "${ops[@]}"; do args+=(--operation "$op"); done
+                IFS=, read -ra list <<< "$names"
+                for name in "${list[@]}"; do args+=("--$type" "$name"); done
+                acls "${args[@]}"
+                echo "granted $user $type $operations $names"
+              done <<< "$ACLS"
+              acls --remove --force --allow-principal 'User:*' --operation All --topic '*' --group '*'
+              kafka-acls --bootstrap-server "$BOOTSTRAP_SERVER" --command-config "$config" --list
+          volumeMounts:
+            - name: users
+              mountPath: /etc/kafka-users
+              readOnly: true
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: users
+          secret:
+            secretName: kafka-scram-users
+            items:
+              - key: admin
+                path: admin
