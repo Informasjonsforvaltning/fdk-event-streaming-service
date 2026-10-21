@@ -32,16 +32,27 @@ spec:
             - name: KAFKA_LISTENERS
               value: "CONTROLLER://0.0.0.0:9093"
             - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
-              value: "CONTROLLER:PLAINTEXT"
+              value: "CONTROLLER:SASL_PLAINTEXT"
             - name: KAFKA_CONTROLLER_LISTENER_NAMES
               value: "CONTROLLER"
+            - name: KAFKA_SASL_ENABLED_MECHANISMS
+              value: "SCRAM-SHA-512"
+            - name: KAFKA_SASL_MECHANISM_CONTROLLER_PROTOCOL
+              value: "SCRAM-SHA-512"
+            - name: SCRAM_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kafka-scram-users
+                  key: admin
+            - name: KAFKA_LISTENER_NAME_CONTROLLER_SCRAM___SHA___512_SASL_JAAS_CONFIG
+              value: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="admin" password="$(SCRAM_ADMIN_PASSWORD)";'
             # Must match the brokers; ACLs live in the KRaft metadata log.
             - name: KAFKA_AUTHORIZER_CLASS_NAME
               value: "org.apache.kafka.metadata.authorizer.StandardAuthorizer"
             - name: KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND
               value: "true"
             - name: KAFKA_SUPER_USERS
-              value: "User:ANONYMOUS;User:admin"
+              value: "User:admin"
             - name: KAFKA_HEAP_OPTS
               value: "-Xms512M -Xmx512M"
             - name: KAFKA_LOG4J_ROOT_LOGLEVEL
