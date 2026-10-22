@@ -22,10 +22,30 @@ spec:
           # env var. 7.9.x unsets it for controller-only nodes, 8.x does not and
           # then renders an empty advertised.listeners that Kafka 4.x rejects.
           # Unsetting it here keeps the step 4 image bump a pure tag change.
+          #
+          # The data directory holds the KRaft metadata log: topics, SCRAM users
+          # and ACLs. The image entrypoint would silently format an empty
+          # directory, which leaves a controller without the admin user the
+          # brokers log in with. Refuse instead, so a lost disk is restored from
+          # a snapshot. A brand new cluster is formatted once with the admin
+          # credential by setting FORMAT_NEW_CLUSTER=true on the controller.
           command:
             - /bin/bash
             - -c
-            - unset KAFKA_ADVERTISED_LISTENERS; exec /etc/confluent/docker/run
+            - |
+              set -euo pipefail
+              unset KAFKA_ADVERTISED_LISTENERS
+              if [ ! -f /var/lib/kafka/data/meta.properties ]; then
+                if [ "${FORMAT_NEW_CLUSTER:-}" != "true" ]; then
+                  echo "ERROR: /var/lib/kafka/data is not formatted; it should hold the metadata log." >&2
+                  echo "Restore the disk from a snapshot. For a brand new cluster set FORMAT_NEW_CLUSTER=true once." >&2
+                  exit 1
+                fi
+                /etc/confluent/docker/configure
+                kafka-storage format --cluster-id "$CLUSTER_ID" -c /etc/kafka/kafka.properties \
+                  --add-scram "SCRAM-SHA-512=[name=admin,password=$SCRAM_ADMIN_PASSWORD]"
+              fi
+              exec /etc/confluent/docker/run
           env:
             - name: KAFKA_PROCESS_ROLES
               value: "controller"
