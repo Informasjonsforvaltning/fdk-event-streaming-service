@@ -54,7 +54,7 @@ spec:
             - name: KAFKA_AUTHORIZER_CLASS_NAME
               value: "org.apache.kafka.metadata.authorizer.StandardAuthorizer"
             - name: KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND
-              value: "true"
+              value: "false"
             - name: KAFKA_SUPER_USERS
               value: "User:admin"
             - name: KAFKA_CONTROLLER_QUORUM_VOTERS
@@ -65,6 +65,9 @@ spec:
               value: "-1"
             - name: KAFKA_LOG4J_ROOT_LOGLEVEL
               value: "WARN"
+            # Denied requests are logged at INFO by the authorizer.
+            - name: KAFKA_LOG4J_LOGGERS
+              value: "kafka.authorizer.logger=INFO"
           ports:
             - containerPort: 9094
           resources:
