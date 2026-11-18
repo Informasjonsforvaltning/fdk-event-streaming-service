@@ -36,6 +36,11 @@ spec:
               secretKeyRef:
                 name: kafka-user-schema-registry
                 key: SASL_JAAS_CONFIG
+          # Disables the Base64 decode intrinsic (CVE-2026-114938). Set through
+          # JAVA_TOOL_OPTIONS because the entrypoint renders every SCHEMA_REGISTRY_*
+          # variable into schema-registry.properties. Remove once the image ships a fixed JDK.
+          - name: JAVA_TOOL_OPTIONS
+            value: "-XX:+UnlockDiagnosticVMOptions -XX:DisableIntrinsic=_base64_decodeBlock"
           image: confluentinc/cp-schema-registry:8.3.2
           imagePullPolicy: Always
           ports:
