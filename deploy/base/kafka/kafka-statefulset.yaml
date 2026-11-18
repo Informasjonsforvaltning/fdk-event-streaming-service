@@ -68,6 +68,10 @@ spec:
             # Denied requests are logged at INFO by the authorizer.
             - name: KAFKA_LOG4J_LOGGERS
               value: "kafka.authorizer.logger=INFO"
+            # Disables the Base64 decode intrinsic (CVE-2026-114938). The unlock
+            # flag must come first. Remove once the image ships a fixed JDK.
+            - name: KAFKA_OPTS
+              value: "-XX:+UnlockDiagnosticVMOptions -XX:DisableIntrinsic=_base64_decodeBlock"
           ports:
             - containerPort: 9094
           resources:

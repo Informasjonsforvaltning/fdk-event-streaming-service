@@ -75,6 +75,10 @@ spec:
               value: "User:admin"
             - name: KAFKA_HEAP_OPTS
               value: "-Xms512M -Xmx512M"
+            # Disables the Base64 decode intrinsic (CVE-2026-114938). The unlock
+            # flag must come first. Remove once the image ships a fixed JDK.
+            - name: KAFKA_OPTS
+              value: "-XX:+UnlockDiagnosticVMOptions -XX:DisableIntrinsic=_base64_decodeBlock"
             - name: KAFKA_LOG4J_ROOT_LOGLEVEL
               value: "WARN"
             # Denied requests are logged at INFO by the authorizer.
